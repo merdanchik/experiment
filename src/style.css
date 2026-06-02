@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@font-face {
+	font-family: "Haas";
+	src: url("/haas.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@theme {
+	--font-haas: "Haas", sans-serif;
+}
+
+* {
+	@apply antialiased tracking-tight font-haas;
+}
