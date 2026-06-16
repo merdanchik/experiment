@@ -62,7 +62,6 @@ export default class Particles {
 		const positionTexture = this.gpuCompute.createTexture();
 		this.defaultPositionTexture = this.gpuCompute.createTexture();
 		this.particleDataTexture = this.gpuCompute.createTexture();
-		this.targetTexture = this.#buildTargetTexture();
 
 		this.#fillTextures(
 			positionTexture,
@@ -71,7 +70,6 @@ export default class Particles {
 		);
 
 		this.defaultPositionTexture.needsUpdate = true;
-		this.targetTexture.needsUpdate = true;
 
 		this.positionVariable = this.gpuCompute.addVariable(
 			"texturePosition",
@@ -81,8 +79,8 @@ export default class Particles {
 
 		Object.assign(this.positionVariable.material.uniforms, {
 			textureDefaultPosition: { value: this.defaultPositionTexture },
-			textureTarget: { value: this.targetTexture },
 			uAttractStrength: { value: 0.0 },
+			uRadius: { value: this.radius },
 			uTime: { value: 0 },
 			uSpeed: { value: 1.0 },
 			uDieSpeed: { value: 0.015 },
@@ -178,62 +176,6 @@ export default class Particles {
 		});
 
 		this.scene.add(this.points);
-	}
-
-	#buildTargetTexture() {
-		// Sample the silhouette analytically — no canvas API needed
-		const res = 400;
-		const points = [];
-
-		for (let yi = 0; yi < res; yi++) {
-			for (let xi = 0; xi < res; xi++) {
-				const x = (xi / res - 0.5) * 2;
-				const y = -(yi / res - 0.5) * 2; // y=+1 top, y=-1 bottom
-
-				// Head (circle)
-				const inHead = x * x + (y - 0.73) * (y - 0.73) < 0.155 * 0.155;
-
-				// Neck
-				const inNeck = Math.abs(x) < 0.055 && y > 0.565 && y < 0.62;
-
-				// Torso — trapezoid: wide at shoulders, narrow at hips
-				let inTorso = false;
-				if (y >= -0.08 && y <= 0.57) {
-					const t = (y + 0.08) / 0.65;
-					inTorso = Math.abs(x) < 0.12 + t * 0.16;
-				}
-
-				// Left arm
-				const inLeftArm  = x >= -0.46 && x <= -0.26 && y >= -0.08 && y <= 0.52;
-				// Right arm
-				const inRightArm = x >=  0.26 && x <=  0.46 && y >= -0.08 && y <= 0.52;
-
-				// Left leg
-				const inLeftLeg  = x >= -0.19 && x <= -0.03 && y >= -0.74 && y <= -0.07;
-				// Right leg
-				const inRightLeg = x >=  0.03 && x <=  0.19 && y >= -0.74 && y <= -0.07;
-
-				if (inHead || inNeck || inTorso || inLeftArm || inRightArm || inLeftLeg || inRightLeg) {
-					points.push(x * this.radius * 0.72, y * this.radius * 0.72, 0);
-				}
-			}
-		}
-
-		// Assign a random silhouette point to each particle
-		const texture = this.gpuCompute.createTexture();
-		const data = texture.image.data;
-		const count = this.size * this.size;
-		const pointCount = points.length / 3;
-
-		for (let i = 0; i < count; i++) {
-			const p = Math.floor(Math.random() * pointCount) * 3;
-			data[i * 4]     = points[p];
-			data[i * 4 + 1] = points[p + 1];
-			data[i * 4 + 2] = points[p + 2];
-			data[i * 4 + 3] = 1;
-		}
-
-		return texture;
 	}
 
 	setAttraction(strength) {
