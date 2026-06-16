@@ -149,7 +149,7 @@ export default class Particles {
 					particleDataTexture: { value: this.particleDataTexture },
 					uPointSize: { value: this.pointSize },
 					uLightDirection: { value: this.lightDirection },
-					shadowColor: { value: new THREE.Color(0x2f4c52) },
+					shadowColor: { value: new THREE.Color(0x000000) },
 					shadowBlurRadius: { value: 2.0 },
 				},
 			]),
