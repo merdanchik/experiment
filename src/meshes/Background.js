@@ -3,7 +3,7 @@ import vertexShader from "../shaders/background/vertex.glsl";
 import fragmentShader from "../shaders/background/fragment.glsl";
 
 export default class Background extends THREE.Mesh {
-	constructor(camera, { colorTop = 0x173038, colorBottom = 0x3d626b } = {}) {
+	constructor(camera, { colorTop = 0x000000, colorBottom = 0x000000 } = {}) {
 		const geometry = new THREE.PlaneGeometry(1, 1);
 
 		const material = new THREE.ShaderMaterial({

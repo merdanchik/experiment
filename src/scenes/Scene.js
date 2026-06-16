@@ -3,7 +3,6 @@ import WebGLContext from "../core/WebGLContext";
 import { CameraRig } from "../utils/CameraRig";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import Particles from "../meshes/Particles";
-import Tracery from "../meshes/Tracery";
 import Background from "../meshes/Background";
 import Composer from "../postprocessing/Composer";
 import MotionBlur from "../postprocessing/MotionBlur";
@@ -104,10 +103,6 @@ export default class Scene {
 		this.particles = new Particles(this.scene, {
 			lightDirection: this.light.position.clone().normalize(),
 		});
-		this.tracery = new Tracery(this.scene, this.camera, {
-			radius: this.particles.radius,
-		});
-		this.tracery.resize(this.width, this.height);
 	}
 
 	#setupComposer() {
@@ -133,7 +128,6 @@ export default class Scene {
 	animate(delta, elapsed) {
 		this.cameraRig?.update(delta);
 		this.particles?.update(elapsed, delta);
-		this.tracery?.update(delta);
 	}
 
 	onResize(width, height) {
@@ -149,6 +143,5 @@ export default class Scene {
 
 		this.composer?.resize(width, height);
 		this.motionBlur?.resize(width, height);
-		this.tracery?.resize(width, height);
 	}
 }
