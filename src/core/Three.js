@@ -11,6 +11,7 @@ class Three {
 		this.targetTimeScale = 1.0;
 		this.scaledElapsed = 0;
 		this.slowMotionScale = 0.15;
+		this.slowMoLocked = false;
 	}
 
 	run() {
@@ -44,7 +45,7 @@ class Three {
 			this.targetTimeScale = this.slowMotionScale;
 		};
 		const exitSlowMotion = () => {
-			this.targetTimeScale = 1.0;
+			if (!this.slowMoLocked) this.targetTimeScale = 1.0;
 		};
 
 		target.addEventListener("pointerdown", enterSlowMotion);
@@ -59,6 +60,15 @@ class Three {
 		} else {
 			this.context.renderer.render(this.scene.scene, this.scene.camera);
 		}
+	}
+
+	setMotionBlur(enabled) {
+		this.scene.setMotionBlur(enabled);
+	}
+
+	setSlowMotion(enabled) {
+		this.slowMoLocked = enabled;
+		this.targetTimeScale = enabled ? this.slowMotionScale : 1.0;
 	}
 
 	#addResizeListener() {

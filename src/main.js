@@ -5,4 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
 	const container = document.querySelector("#app");
 	const three = new Three(container);
 	three.run();
+
+	const btnBlur = document.querySelector("#btn-blur");
+	let blurEnabled = true;
+	btnBlur.addEventListener("click", (e) => {
+		e.stopPropagation();
+		blurEnabled = !blurEnabled;
+		three.setMotionBlur(blurEnabled);
+		btnBlur.dataset.active = blurEnabled;
+	});
+
+	const btnSlowmo = document.querySelector("#btn-slowmo");
+	let slowMoEnabled = false;
+	btnSlowmo.addEventListener("click", (e) => {
+		e.stopPropagation();
+		slowMoEnabled = !slowMoEnabled;
+		three.setSlowMotion(slowMoEnabled);
+		btnSlowmo.dataset.active = slowMoEnabled;
+	});
 });

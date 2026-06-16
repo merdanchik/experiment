@@ -15,3 +15,25 @@
 * {
 	@apply antialiased tracking-tight font-haas;
 }
+
+#btn-blur,
+#btn-slowmo {
+	padding: 6px 16px;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	background: transparent;
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s, border-color 0.2s;
+	user-select: none;
+}
+
+#btn-blur[data-active="true"],
+#btn-slowmo[data-active="true"] {
+	background: white;
+	color: black;
+	border-color: white;
+}

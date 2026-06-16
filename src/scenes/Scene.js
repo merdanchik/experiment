@@ -112,9 +112,16 @@ export default class Scene {
 		this.composer.addPass(this.motionBlur.pass);
 	}
 
+	setMotionBlur(enabled) {
+		this.motionBlurEnabled = enabled;
+		this.motionBlur.pass.enabled = enabled;
+	}
+
 	render(delta) {
-		this.motionBlur.renderVelocity(this.camera);
-		this.motionBlur.update(delta);
+		if (this.motionBlurEnabled !== false) {
+			this.motionBlur.renderVelocity(this.camera);
+			this.motionBlur.update(delta);
+		}
 		this.composer.render();
 	}
 
