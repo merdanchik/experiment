@@ -181,78 +181,40 @@ export default class Particles {
 	}
 
 	#buildTargetTexture() {
-		const silSize = 256;
-		const canvas = document.createElement('canvas');
-		canvas.width = silSize;
-		canvas.height = silSize;
-		const ctx = canvas.getContext('2d');
-		ctx.fillStyle = 'white';
-
-		const cx = silSize * 0.5;
-		const u = silSize;
-
-		// Head
-		ctx.beginPath();
-		ctx.arc(cx, u * 0.10, u * 0.075, 0, Math.PI * 2);
-		ctx.fill();
-
-		// Neck
-		ctx.fillRect(cx - u * 0.03, u * 0.175, u * 0.06, u * 0.04);
-
-		// Torso
-		ctx.beginPath();
-		ctx.moveTo(cx - u * 0.14, u * 0.215);
-		ctx.lineTo(cx + u * 0.14, u * 0.215);
-		ctx.lineTo(cx + u * 0.09, u * 0.48);
-		ctx.lineTo(cx - u * 0.09, u * 0.48);
-		ctx.closePath();
-		ctx.fill();
-
-		// Left arm
-		ctx.beginPath();
-		ctx.moveTo(cx - u * 0.14, u * 0.215);
-		ctx.lineTo(cx - u * 0.20, u * 0.225);
-		ctx.lineTo(cx - u * 0.24, u * 0.44);
-		ctx.lineTo(cx - u * 0.18, u * 0.44);
-		ctx.closePath();
-		ctx.fill();
-
-		// Right arm
-		ctx.beginPath();
-		ctx.moveTo(cx + u * 0.14, u * 0.215);
-		ctx.lineTo(cx + u * 0.20, u * 0.225);
-		ctx.lineTo(cx + u * 0.24, u * 0.44);
-		ctx.lineTo(cx + u * 0.18, u * 0.44);
-		ctx.closePath();
-		ctx.fill();
-
-		// Left leg
-		ctx.beginPath();
-		ctx.moveTo(cx - u * 0.09, u * 0.48);
-		ctx.lineTo(cx - u * 0.01, u * 0.48);
-		ctx.lineTo(cx - u * 0.02, u * 0.88);
-		ctx.lineTo(cx - u * 0.11, u * 0.88);
-		ctx.closePath();
-		ctx.fill();
-
-		// Right leg
-		ctx.beginPath();
-		ctx.moveTo(cx + u * 0.01, u * 0.48);
-		ctx.lineTo(cx + u * 0.09, u * 0.48);
-		ctx.lineTo(cx + u * 0.11, u * 0.88);
-		ctx.lineTo(cx + u * 0.02, u * 0.88);
-		ctx.closePath();
-		ctx.fill();
-
-		// Collect filled pixels
-		const pixels = ctx.getImageData(0, 0, silSize, silSize).data;
+		// Sample the silhouette analytically — no canvas API needed
+		const res = 400;
 		const points = [];
-		for (let y = 0; y < silSize; y++) {
-			for (let x = 0; x < silSize; x++) {
-				if (pixels[(y * silSize + x) * 4 + 3] > 128) {
-					const nx = (x / silSize - 0.5) * 2;
-					const ny = -(y / silSize - 0.5) * 2;
-					points.push(nx * this.radius * 0.75, ny * this.radius * 0.75, 0);
+
+		for (let yi = 0; yi < res; yi++) {
+			for (let xi = 0; xi < res; xi++) {
+				const x = (xi / res - 0.5) * 2;
+				const y = -(yi / res - 0.5) * 2; // y=+1 top, y=-1 bottom
+
+				// Head (circle)
+				const inHead = x * x + (y - 0.73) * (y - 0.73) < 0.155 * 0.155;
+
+				// Neck
+				const inNeck = Math.abs(x) < 0.055 && y > 0.565 && y < 0.62;
+
+				// Torso — trapezoid: wide at shoulders, narrow at hips
+				let inTorso = false;
+				if (y >= -0.08 && y <= 0.57) {
+					const t = (y + 0.08) / 0.65;
+					inTorso = Math.abs(x) < 0.12 + t * 0.16;
+				}
+
+				// Left arm
+				const inLeftArm  = x >= -0.46 && x <= -0.26 && y >= -0.08 && y <= 0.52;
+				// Right arm
+				const inRightArm = x >=  0.26 && x <=  0.46 && y >= -0.08 && y <= 0.52;
+
+				// Left leg
+				const inLeftLeg  = x >= -0.19 && x <= -0.03 && y >= -0.74 && y <= -0.07;
+				// Right leg
+				const inRightLeg = x >=  0.03 && x <=  0.19 && y >= -0.74 && y <= -0.07;
+
+				if (inHead || inNeck || inTorso || inLeftArm || inRightArm || inLeftLeg || inRightLeg) {
+					points.push(x * this.radius * 0.72, y * this.radius * 0.72, 0);
 				}
 			}
 		}
@@ -260,14 +222,17 @@ export default class Particles {
 		// Assign a random silhouette point to each particle
 		const texture = this.gpuCompute.createTexture();
 		const data = texture.image.data;
+		const count = this.size * this.size;
 		const pointCount = points.length / 3;
-		for (let i = 0; i < this.size * this.size; i++) {
+
+		for (let i = 0; i < count; i++) {
 			const p = Math.floor(Math.random() * pointCount) * 3;
 			data[i * 4]     = points[p];
 			data[i * 4 + 1] = points[p + 1];
 			data[i * 4 + 2] = points[p + 2];
 			data[i * 4 + 3] = 1;
 		}
+
 		return texture;
 	}
 
