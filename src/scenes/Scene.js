@@ -112,6 +112,10 @@ export default class Scene {
 		this.composer.addPass(this.motionBlur.pass);
 	}
 
+	setAttraction(enabled) {
+		this.particles?.setAttraction(enabled ? 0.8 : 0.0);
+	}
+
 	setMotionBlur(enabled) {
 		this.motionBlurEnabled = enabled;
 		this.motionBlur.pass.enabled = enabled;

@@ -33,4 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		btnPause.dataset.active = paused;
 		btnPause.textContent = paused ? "Play" : "Pause";
 	});
+
+	const btnSilhouette = document.querySelector("#btn-silhouette");
+	let silhouetteEnabled = false;
+	btnSilhouette.addEventListener("click", (e) => {
+		e.stopPropagation();
+		silhouetteEnabled = !silhouetteEnabled;
+		three.setAttraction(silhouetteEnabled);
+		btnSilhouette.dataset.active = silhouetteEnabled;
+	});
 });

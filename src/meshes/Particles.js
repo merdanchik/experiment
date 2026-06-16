@@ -62,6 +62,7 @@ export default class Particles {
 		const positionTexture = this.gpuCompute.createTexture();
 		this.defaultPositionTexture = this.gpuCompute.createTexture();
 		this.particleDataTexture = this.gpuCompute.createTexture();
+		this.targetTexture = this.#buildTargetTexture();
 
 		this.#fillTextures(
 			positionTexture,
@@ -70,6 +71,7 @@ export default class Particles {
 		);
 
 		this.defaultPositionTexture.needsUpdate = true;
+		this.targetTexture.needsUpdate = true;
 
 		this.positionVariable = this.gpuCompute.addVariable(
 			"texturePosition",
@@ -79,6 +81,8 @@ export default class Particles {
 
 		Object.assign(this.positionVariable.material.uniforms, {
 			textureDefaultPosition: { value: this.defaultPositionTexture },
+			textureTarget: { value: this.targetTexture },
+			uAttractStrength: { value: 0.0 },
 			uTime: { value: 0 },
 			uSpeed: { value: 1.0 },
 			uDieSpeed: { value: 0.015 },
@@ -174,6 +178,101 @@ export default class Particles {
 		});
 
 		this.scene.add(this.points);
+	}
+
+	#buildTargetTexture() {
+		const silSize = 256;
+		const canvas = document.createElement('canvas');
+		canvas.width = silSize;
+		canvas.height = silSize;
+		const ctx = canvas.getContext('2d');
+		ctx.fillStyle = 'white';
+
+		const cx = silSize * 0.5;
+		const u = silSize;
+
+		// Head
+		ctx.beginPath();
+		ctx.arc(cx, u * 0.10, u * 0.075, 0, Math.PI * 2);
+		ctx.fill();
+
+		// Neck
+		ctx.fillRect(cx - u * 0.03, u * 0.175, u * 0.06, u * 0.04);
+
+		// Torso
+		ctx.beginPath();
+		ctx.moveTo(cx - u * 0.14, u * 0.215);
+		ctx.lineTo(cx + u * 0.14, u * 0.215);
+		ctx.lineTo(cx + u * 0.09, u * 0.48);
+		ctx.lineTo(cx - u * 0.09, u * 0.48);
+		ctx.closePath();
+		ctx.fill();
+
+		// Left arm
+		ctx.beginPath();
+		ctx.moveTo(cx - u * 0.14, u * 0.215);
+		ctx.lineTo(cx - u * 0.20, u * 0.225);
+		ctx.lineTo(cx - u * 0.24, u * 0.44);
+		ctx.lineTo(cx - u * 0.18, u * 0.44);
+		ctx.closePath();
+		ctx.fill();
+
+		// Right arm
+		ctx.beginPath();
+		ctx.moveTo(cx + u * 0.14, u * 0.215);
+		ctx.lineTo(cx + u * 0.20, u * 0.225);
+		ctx.lineTo(cx + u * 0.24, u * 0.44);
+		ctx.lineTo(cx + u * 0.18, u * 0.44);
+		ctx.closePath();
+		ctx.fill();
+
+		// Left leg
+		ctx.beginPath();
+		ctx.moveTo(cx - u * 0.09, u * 0.48);
+		ctx.lineTo(cx - u * 0.01, u * 0.48);
+		ctx.lineTo(cx - u * 0.02, u * 0.88);
+		ctx.lineTo(cx - u * 0.11, u * 0.88);
+		ctx.closePath();
+		ctx.fill();
+
+		// Right leg
+		ctx.beginPath();
+		ctx.moveTo(cx + u * 0.01, u * 0.48);
+		ctx.lineTo(cx + u * 0.09, u * 0.48);
+		ctx.lineTo(cx + u * 0.11, u * 0.88);
+		ctx.lineTo(cx + u * 0.02, u * 0.88);
+		ctx.closePath();
+		ctx.fill();
+
+		// Collect filled pixels
+		const pixels = ctx.getImageData(0, 0, silSize, silSize).data;
+		const points = [];
+		for (let y = 0; y < silSize; y++) {
+			for (let x = 0; x < silSize; x++) {
+				if (pixels[(y * silSize + x) * 4 + 3] > 128) {
+					const nx = (x / silSize - 0.5) * 2;
+					const ny = -(y / silSize - 0.5) * 2;
+					points.push(nx * this.radius * 0.75, ny * this.radius * 0.75, 0);
+				}
+			}
+		}
+
+		// Assign a random silhouette point to each particle
+		const texture = this.gpuCompute.createTexture();
+		const data = texture.image.data;
+		const pointCount = points.length / 3;
+		for (let i = 0; i < this.size * this.size; i++) {
+			const p = Math.floor(Math.random() * pointCount) * 3;
+			data[i * 4]     = points[p];
+			data[i * 4 + 1] = points[p + 1];
+			data[i * 4 + 2] = points[p + 2];
+			data[i * 4 + 3] = 1;
+		}
+		return texture;
+	}
+
+	setAttraction(strength) {
+		this.positionVariable.material.uniforms.uAttractStrength.value = strength;
 	}
 
 	update(elapsed, delta) {

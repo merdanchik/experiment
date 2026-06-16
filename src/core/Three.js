@@ -65,6 +65,10 @@ class Three {
 		}
 	}
 
+	setAttraction(enabled) {
+		this.scene.setAttraction(enabled);
+	}
+
 	setMotionBlur(enabled) {
 		this.scene.setMotionBlur(enabled);
 	}
