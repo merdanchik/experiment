@@ -12,6 +12,7 @@ class Three {
 		this.scaledElapsed = 0;
 		this.slowMotionScale = 0.15;
 		this.slowMoLocked = false;
+		this.paused = false;
 	}
 
 	run() {
@@ -26,15 +27,17 @@ class Three {
 	#animate() {
 		const delta = this.clock.getDelta();
 
-		// Ease the time scale toward its target so slow-mo ramps in/out smoothly.
-		const ease = Math.min(delta * 12.0, 1.0);
-		this.timeScale += (this.targetTimeScale - this.timeScale) * ease;
+		if (!this.paused) {
+			// Ease the time scale toward its target so slow-mo ramps in/out smoothly.
+			const ease = Math.min(delta * 12.0, 1.0);
+			this.timeScale += (this.targetTimeScale - this.timeScale) * ease;
 
-		const scaledDelta = delta * this.timeScale;
-		this.scaledElapsed += scaledDelta;
+			const scaledDelta = delta * this.timeScale;
+			this.scaledElapsed += scaledDelta;
 
-		this.scene.animate(scaledDelta, this.scaledElapsed);
-		this.#render(scaledDelta);
+			this.scene.animate(scaledDelta, this.scaledElapsed);
+			this.#render(scaledDelta);
+		}
 
 		requestAnimationFrame(() => this.#animate());
 	}
@@ -64,6 +67,11 @@ class Three {
 
 	setMotionBlur(enabled) {
 		this.scene.setMotionBlur(enabled);
+	}
+
+	setPaused(paused) {
+		this.paused = paused;
+		if (!paused) this.clock.getDelta(); // flush accumulated delta
 	}
 
 	setSlowMotion(enabled) {

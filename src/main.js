@@ -23,4 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		three.setSlowMotion(slowMoEnabled);
 		btnSlowmo.dataset.active = slowMoEnabled;
 	});
+
+	const btnPause = document.querySelector("#btn-pause");
+	let paused = false;
+	btnPause.addEventListener("click", (e) => {
+		e.stopPropagation();
+		paused = !paused;
+		three.setPaused(paused);
+		btnPause.dataset.active = paused;
+		btnPause.textContent = paused ? "Play" : "Pause";
+	});
 });

@@ -17,7 +17,8 @@
 }
 
 #btn-blur,
-#btn-slowmo {
+#btn-slowmo,
+#btn-pause {
 	padding: 6px 16px;
 	border-radius: 999px;
 	border: 1px solid rgba(255, 255, 255, 0.4);
@@ -32,7 +33,8 @@
 }
 
 #btn-blur[data-active="true"],
-#btn-slowmo[data-active="true"] {
+#btn-slowmo[data-active="true"],
+#btn-pause[data-active="true"] {
 	background: white;
 	color: black;
 	border-color: white;
