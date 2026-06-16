@@ -179,7 +179,10 @@ export default class Particles {
 	}
 
 	setAttraction(strength) {
-		this.positionVariable.material.uniforms.uAttractStrength.value = strength;
+		const u = this.positionVariable?.material?.uniforms;
+		if (!u) { console.error('[Particles] uniforms not ready'); return; }
+		console.log('[Particles] setAttraction →', strength, '| uRadius =', u.uRadius?.value);
+		u.uAttractStrength.value = strength;
 	}
 
 	update(elapsed, delta) {

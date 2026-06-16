@@ -60,19 +60,26 @@ void main() {
 	float life = positionInfo.a - uDieSpeed * uDeltaFrames;
 
 	if (life < 0.0) {
-		vec4 defaultPosition = texture2D(textureDefaultPosition, uv);
-		position = defaultPosition.xyz;
-		life = 0.5 + fract(defaultPosition.w * 21.4131 + uTime);
+		if (uAttractStrength > 0.5) {
+			position = silhouetteTarget(uv);
+		} else {
+			vec4 defaultPosition = texture2D(textureDefaultPosition, uv);
+			position = defaultPosition.xyz;
+		}
+		life = 0.5 + fract(dot(uv, vec2(127.1, 311.7)) + uTime);
 	} else {
 		vec3 flow = curl(position * uCurlSize, uTime, 0.1 + (1.0 - life) * 0.1);
 		flow /= length(flow) + 1e-4;
 
-		vec3 target   = silhouetteTarget(uv);
-		vec3 toTarget = target - position;
-		float dist    = length(toTarget);
-		vec3 attract  = dist > 0.001 ? toTarget / dist : vec3(0.0);
-
-		position += mix(flow, attract, uAttractStrength) * uSpeed * uDeltaFrames;
+		if (uAttractStrength > 0.0) {
+			vec3 target = silhouetteTarget(uv);
+			// Lerp toward target — no overshooting, exponential convergence
+			position += (target - position) * uAttractStrength * 0.12 * uDeltaFrames;
+			// Small curl residual for organic feel
+			position += flow * (1.0 - uAttractStrength) * uSpeed * uDeltaFrames;
+		} else {
+			position += flow * uSpeed * uDeltaFrames;
+		}
 	}
 
 	gl_FragColor = vec4(position, life);
