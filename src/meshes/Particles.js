@@ -79,8 +79,6 @@ export default class Particles {
 
 		Object.assign(this.positionVariable.material.uniforms, {
 			textureDefaultPosition: { value: this.defaultPositionTexture },
-			uAttractStrength: { value: 0.0 },
-			uRadius: { value: this.radius },
 			uTime: { value: 0 },
 			uSpeed: { value: 1.0 },
 			uDieSpeed: { value: 0.015 },
@@ -176,13 +174,6 @@ export default class Particles {
 		});
 
 		this.scene.add(this.points);
-	}
-
-	setAttraction(strength) {
-		const u = this.positionVariable?.material?.uniforms;
-		if (!u) { console.error('[Particles] uniforms not ready'); return; }
-		console.log('[Particles] setAttraction →', strength, '| uRadius =', u.uRadius?.value);
-		u.uAttractStrength.value = strength;
 	}
 
 	update(elapsed, delta) {
